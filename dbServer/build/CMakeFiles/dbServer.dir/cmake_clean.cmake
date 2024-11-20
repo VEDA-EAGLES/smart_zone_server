@@ -7,6 +7,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/dbServer.dir/src/HttpServer.cpp.o.d"
   "CMakeFiles/dbServer.dir/src/RequestHandler.cpp.o"
   "CMakeFiles/dbServer.dir/src/RequestHandler.cpp.o.d"
+  "CMakeFiles/dbServer.dir/src/database.cpp.o"
+  "CMakeFiles/dbServer.dir/src/database.cpp.o.d"
 )
 
 # Per-language clean rules from dependency scanning.

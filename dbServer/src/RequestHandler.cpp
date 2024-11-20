@@ -32,6 +32,7 @@ void RequestHandler::handleRequest(tcp::socket socket) {
 }
 
 void RequestHandler::processGet(tcp::socket& socket) {
+    
     string response = HTTP_OK + "GET request processed\n";
     sendResponse(socket, response);
 }

@@ -11,6 +11,7 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/pi/myDir/MyHttp/dbServer/main.cpp" "CMakeFiles/dbServer.dir/main.cpp.o" "gcc" "CMakeFiles/dbServer.dir/main.cpp.o.d"
   "/home/pi/myDir/MyHttp/dbServer/src/HttpServer.cpp" "CMakeFiles/dbServer.dir/src/HttpServer.cpp.o" "gcc" "CMakeFiles/dbServer.dir/src/HttpServer.cpp.o.d"
   "/home/pi/myDir/MyHttp/dbServer/src/RequestHandler.cpp" "CMakeFiles/dbServer.dir/src/RequestHandler.cpp.o" "gcc" "CMakeFiles/dbServer.dir/src/RequestHandler.cpp.o.d"
+  "/home/pi/myDir/MyHttp/dbServer/src/database.cpp" "CMakeFiles/dbServer.dir/src/database.cpp.o" "gcc" "CMakeFiles/dbServer.dir/src/database.cpp.o.d"
   )
 
 # Targets to which this target links.

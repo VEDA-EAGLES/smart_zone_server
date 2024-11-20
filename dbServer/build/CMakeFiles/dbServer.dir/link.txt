@@ -1,1 +1,1 @@
-/usr/bin/c++ -g CMakeFiles/dbServer.dir/src/HttpServer.cpp.o CMakeFiles/dbServer.dir/src/RequestHandler.cpp.o CMakeFiles/dbServer.dir/main.cpp.o -o /home/pi/myDir/MyHttp/dbServer/dbServer  /usr/lib/aarch64-linux-gnu/libboost_system.so.1.74.0 
+/usr/bin/c++ -g CMakeFiles/dbServer.dir/src/HttpServer.cpp.o CMakeFiles/dbServer.dir/src/RequestHandler.cpp.o CMakeFiles/dbServer.dir/src/database.cpp.o CMakeFiles/dbServer.dir/main.cpp.o -o /home/pi/myDir/MyHttp/dbServer/dbServer  /usr/lib/aarch64-linux-gnu/libboost_system.so.1.74.0 /usr/lib/aarch64-linux-gnu/libsqlite3.so 

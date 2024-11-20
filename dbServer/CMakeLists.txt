@@ -14,21 +14,25 @@ set(CMAKE_BUILD_TYPE Debug)
 # Boost 라이브러리 설정
 find_package(Boost REQUIRED COMPONENTS system)
 
+# SQLite3 설정
+find_package(SQLite3 REQUIRED)
+
 # 헤더 파일 경로 포함
-include_directories(${Boost_INCLUDE_DIRS} inc)
+include_directories(${Boost_INCLUDE_DIRS} inc ${SQLite3_INCLUDE_DIRS})
 
 # 소스 파일 설정
 set(SOURCES
     src/HttpServer.cpp
     src/RequestHandler.cpp
+    src/database.cpp
     main.cpp
 )
 
 # 실행 파일 생성
 add_executable(${PROJECT_NAME} ${SOURCES})
 
-# Boost 라이브러리 링크
-target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
+# Boost 라이브러리와 SQLite3 라이브러리 링크
+target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES} SQLite::SQLite3)
 
 # 빌드 결과물 디렉토리 설정 (현재 경로에 실행 파일 생성)
 set_target_properties(${PROJECT_NAME} PROPERTIES
