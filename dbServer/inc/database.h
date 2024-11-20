@@ -35,10 +35,12 @@ struct Data {
     std::string end_time;
 };
 
-void fetchCameras(sqlite3* db, std::vector<Camera>& cameras);
-void fetchVideos(sqlite3* db, std::vector<Video>& videos);
-void fetchAreas(sqlite3* db, std::vector<Area>& areas);
-void fetchData(sqlite3* db, std::vector<Data>& data);
+std::string fetchCameras(sqlite3* db);
+std::string fetchVideos(sqlite3* db);
+std::string fetchAreas(sqlite3* db);
+std::string fetchData(sqlite3* db);
+std::string fetchData(sqlite3* db, int start, int end);
+
 
 #endif // DATABASE_H
 

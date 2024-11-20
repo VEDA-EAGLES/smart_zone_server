@@ -19,12 +19,10 @@ void Server::run() {
     while (true) {
         tcp::socket socket(io_service);
         acceptor.accept(socket);
-
         {
             lock_guard<mutex> lock(cout_mutex_);
             cout << "New client connected: " << socket.remote_endpoint() << endl;
         }
-
         // Handle requests in a separate thread
         thread(&RequestHandler::handleRequest, RequestHandler(), move(socket)).detach();
     }

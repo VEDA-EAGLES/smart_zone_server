@@ -1,32 +1,42 @@
+#include <nlohmann/json.hpp>
 #include "database.h"
 #include <iostream>
 
-void fetchCameras(sqlite3* db, std::vector<Camera>& cameras) {
+using json = nlohmann::json;
+
+std::string fetchCameras(sqlite3* db) {
+    if (sqlite3_open("Eagles.db", &db) != SQLITE_OK) {
+        std::cerr << "Cannot open database: " << sqlite3_errmsg(db) << std::endl;
+        return "";
+    }
     const char* query = "SELECT camera_id, camera_name, camera_ip FROM cameras";
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) != SQLITE_OK) {
         std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << std::endl;
-        return;
+        return " ";
     }
+    json cameras = json::array(); // JSON 배열 생성
 
     while (sqlite3_step(stmt) == SQLITE_ROW) {
-        Camera camera = {
-            sqlite3_column_int(stmt, 0),
-            reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)),
-            reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2))
+        json camera = {
+            {"camera_id", sqlite3_column_int(stmt, 0)},
+            {"camera_name", reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1))},
+            {"camera_ip", reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2))}
         };
-        cameras.push_back(camera);
+        cameras.push_back(camera); // JSON 배열에 추가
     }
-
     sqlite3_finalize(stmt);
+    std::string cameras_str = cameras.dump(4);
+    // std::cout << cameras_str << std::endl;
+    return cameras_str;
 }
 
-void fetchVideos(sqlite3* db, std::vector<Video>& videos) {
-    const char* query = "SELECT video_id, camera_id, video_name, video_storage, start_time, end_time FROM videos";
+std::string fetchVideos(sqlite3* db) {
+    const char* query = "SELECT * FROM videos";
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) != SQLITE_OK) {
         std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << std::endl;
-        return;
+        return "";
     }
 
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -38,18 +48,18 @@ void fetchVideos(sqlite3* db, std::vector<Video>& videos) {
             reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4)),
             reinterpret_cast<const char*>(sqlite3_column_text(stmt, 5))
         };
-        videos.push_back(video);
     }
 
     sqlite3_finalize(stmt);
+    return "";
 }
 
-void fetchAreas(sqlite3* db, std::vector<Area>& areas) {
-    const char* query = "SELECT area_id, camera_id, area_coordinate, area_name FROM areas";
+std::string fetchAreas(sqlite3* db) {
+    const char* query = "SELECT * FROM areas";
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) != SQLITE_OK) {
         std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << std::endl;
-        return;
+        return "";
     }
 
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -59,31 +69,63 @@ void fetchAreas(sqlite3* db, std::vector<Area>& areas) {
             reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2)),
             reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3))
         };
-        areas.push_back(area);
     }
 
     sqlite3_finalize(stmt);
+    return "";
 }
 
-void fetchData(sqlite3* db, std::vector<Data>& data) {
-    const char* query = "SELECT data_id, area_id, people_count, start_time, end_time FROM data";
+std::string fetchData(sqlite3* db) {
+    if (sqlite3_open("Eagles.db", &db) != SQLITE_OK) {
+        std::cerr << "Cannot open database: " << sqlite3_errmsg(db) << std::endl;
+        return "";
+    }
+    const char* query = "SELECT * FROM data";
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) != SQLITE_OK) {
         std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << std::endl;
-        return;
+        return "";
     }
-
+    json datas = json::array(); // JSON 배열 생성
     while (sqlite3_step(stmt) == SQLITE_ROW) {
-        Data record = {
-            sqlite3_column_int(stmt, 0),
-            sqlite3_column_int(stmt, 1),
-            sqlite3_column_int(stmt, 2),
-            reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3)),
-            reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4))
+        json data = {
+            {"data_id", sqlite3_column_int(stmt, 0)},
+            {"area_id", sqlite3_column_int(stmt, 1)},
+            {"people_cnt", sqlite3_column_int(stmt, 2)},
+            {"start_time", sqlite3_column_int(stmt, 3)},
+            {"end_time", sqlite3_column_int(stmt, 4)}
         };
-        data.push_back(record);
+        datas.push_back(data); // JSON 배열에 추가
     }
-
     sqlite3_finalize(stmt);
+    std::string data_str = datas.dump(4);
+    return data_str;
 }
 
+std::string fetchData(sqlite3* db, int start, int end) {
+    if (sqlite3_open("Eagles.db", &db) != SQLITE_OK) {
+        std::cerr << "Cannot open database: " << sqlite3_errmsg(db) << std::endl;
+        return "";
+    }
+    const char* query = "SELECT * FROM data WHERE start_time >= start AND end_time <= end";
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) != SQLITE_OK) {
+        std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << std::endl;
+        return "";
+    }
+    json datas = json::array(); // JSON 배열 생성
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        json data = {
+            {"data_id", sqlite3_column_int(stmt, 0)},
+            {"area_id", sqlite3_column_int(stmt, 1)},
+            {"people_cnt", sqlite3_column_int(stmt, 2)},
+            {"start_time", sqlite3_column_int(stmt, 3)},
+            {"end_time", sqlite3_column_int(stmt, 4)}
+        };
+        datas.push_back(data); // JSON 배열에 추가
+    }
+    sqlite3_finalize(stmt);
+    std::string data_str = datas.dump(4);
+    // std::cout << cameras_str << std::endl;
+    return data_str;
+}

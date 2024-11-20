@@ -15,12 +15,24 @@ public:
 private:
     static std::vector<std::string> data_store;
     static std::mutex data_mutex;
+    static std::mutex db_mutex;
     static const std::string HTTP_OK;
     static const std::string HTTP_BAD_REQUEST;
-
+    // Client to Server
     void processGet(boost::asio::ip::tcp::socket& socket);
     void processPost(boost::asio::ip::tcp::socket& socket, const std::string& request);
     void sendResponse(boost::asio::ip::tcp::socket& socket, const std::string& response);
+    void getDeviceAll(boost::asio::ip::tcp::socket& socket);
+    void getPeopleAll(boost::asio::ip::tcp::socket& socket);
+    void getPeopleInRange(boost::asio::ip::tcp::socket& socket, int start, int end);
+    void postAreaInsert(boost::asio::ip::tcp::socket& socket, const std::string& request);
+    void delAreaAll(int Area_id);
+    // CAM to Server
+    std::string postAreaInsert_C(boost::asio::ip::tcp::socket& socket, const std::string& request);
+    void delAreaAll_C(int Area_id);
+    std::string getCamData(boost::asio::ip::tcp::socket& socket);
+
+
 };
 
 #endif // REQUEST_HANDLER_H
