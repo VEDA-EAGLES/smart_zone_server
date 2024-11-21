@@ -1,4 +1,5 @@
 #include <nlohmann/json.hpp>
+
 #include "database.h"
 #include <iostream>
 
@@ -75,6 +76,25 @@ std::string fetchAreas(sqlite3* db) {
     return "";
 }
 
+void insertAreas(sqlite3* db, std::string request) {
+    if (sqlite3_open("Eagles.db", &db) != SQLITE_OK) {
+        std::cerr << "Cannot open database: " << sqlite3_errmsg(db) << std::endl;
+        return;
+    }
+    const char* query = "INSERT INTO areas (data) VALUES (?)";
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) != SQLITE_OK) {
+        std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << std::endl;
+        return;
+    }
+    sqlite3_bind_text(stmt, 1, request.c_str(), -1, SQLITE_STATIC);
+    sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+    return;
+}
+
+
 std::string fetchData(sqlite3* db) {
     if (sqlite3_open("Eagles.db", &db) != SQLITE_OK) {
         std::cerr << "Cannot open database: " << sqlite3_errmsg(db) << std::endl;
@@ -107,12 +127,14 @@ std::string fetchData(sqlite3* db, int start, int end) {
         std::cerr << "Cannot open database: " << sqlite3_errmsg(db) << std::endl;
         return "";
     }
-    const char* query = "SELECT * FROM data WHERE start_time >= start AND end_time <= end";
+    const char* query = "SELECT * FROM data WHERE start_time >= ? AND end_time <= ?;";
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) != SQLITE_OK) {
         std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << std::endl;
         return "";
     }
+    sqlite3_bind_int(stmt, 1, start); // Bind start to the first placeholder
+    sqlite3_bind_int(stmt, 2, end);   // Bind end to the second placeholder
     json datas = json::array(); // JSON 배열 생성
     while (sqlite3_step(stmt) == SQLITE_ROW) {
         json data = {
@@ -125,6 +147,7 @@ std::string fetchData(sqlite3* db, int start, int end) {
         datas.push_back(data); // JSON 배열에 추가
     }
     sqlite3_finalize(stmt);
+    sqlite3_close(db);
     std::string data_str = datas.dump(4);
     // std::cout << cameras_str << std::endl;
     return data_str;

@@ -38,6 +38,7 @@ struct Data {
 std::string fetchCameras(sqlite3* db);
 std::string fetchVideos(sqlite3* db);
 std::string fetchAreas(sqlite3* db);
+void insertAreas(sqlite3* db, std::string request);
 std::string fetchData(sqlite3* db);
 std::string fetchData(sqlite3* db, int start, int end);
 

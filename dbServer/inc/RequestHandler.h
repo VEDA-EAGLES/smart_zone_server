@@ -19,8 +19,6 @@ private:
     static const std::string HTTP_OK;
     static const std::string HTTP_BAD_REQUEST;
     // Client to Server
-    void processGet(boost::asio::ip::tcp::socket& socket);
-    void processPost(boost::asio::ip::tcp::socket& socket, const std::string& request);
     void sendResponse(boost::asio::ip::tcp::socket& socket, const std::string& response);
     void getDeviceAll(boost::asio::ip::tcp::socket& socket);
     void getPeopleAll(boost::asio::ip::tcp::socket& socket);
