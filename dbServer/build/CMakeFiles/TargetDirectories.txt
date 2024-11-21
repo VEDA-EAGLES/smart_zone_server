@@ -1,4 +1,0 @@
-/home/pi/myDir/MyHttp/dbServer/build/CMakeFiles/dbServer.dir
-/home/pi/myDir/MyHttp/dbServer/build/CMakeFiles/clean-all.dir
-/home/pi/myDir/MyHttp/dbServer/build/CMakeFiles/edit_cache.dir
-/home/pi/myDir/MyHttp/dbServer/build/CMakeFiles/rebuild_cache.dir
