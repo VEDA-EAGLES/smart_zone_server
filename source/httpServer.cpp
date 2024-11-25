@@ -60,11 +60,25 @@ void HTTPServer::setResponse()
         mtx.unlock();
 	});
     
-    server.Delete("/area/insert", [](const httplib::Request& req, httplib::Response& res) {
-        // mtx.lock();
-        // json jsonData; jsonData["status"] = 200; string jsonBody = jsonData.dump();
-        // res.set_content(jsonBody, "application/json");
-        // mtx.unlock();
+    server.Delete("/area/all", [](const httplib::Request& req, httplib::Response& res) {
+        mtx.lock();
+        json jsonData = json::parse(req.body);
+        int cameraId = jsonData["camera_id"];
+        deleteArea(cameraId);
+        mtx.unlock();
+	});
+
+    server.Get("/video", [](const httplib::Request& req, httplib::Response& res) {
+        mtx.lock();
+        json jsonData = json::parse(req.body);
+        insertVideo(
+            jsonData["camera_id"],
+            jsonData["video_name"],
+            jsonData["video_storage"],
+            jsonData["start_time"],
+            jsonData["end_time"]
+        );
+        mtx.unlock();
 	});
 
 }

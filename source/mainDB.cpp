@@ -182,3 +182,56 @@ string fetchData(int start, int end) {
     string data_str = datas.dump(4);
     return data_str;
 }
+
+void insertVideo(int camera_id, string video_name, string video_storage, int start_time, int end_time) {
+    sqlite3* db;
+    if (sqlite3_open("../Eagles.db", &db) != SQLITE_OK) {
+        cerr << "Cannot open database: " << sqlite3_errmsg(db) << endl;
+        return;
+    }
+
+    const char* query = "INSERT INTO areas (camera_id, video_name, video_storage, start_time, end_time) VALUES (?, ?, ?, ?, ?)"; 
+
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) != SQLITE_OK) {
+        cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
+        sqlite3_close(db);
+        return;
+    }
+
+    // 각 컬럼에 해당하는 값 바인딩
+    sqlite3_bind_int(stmt, 1, camera_id);
+    sqlite3_bind_text(stmt, 2, video_name.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 3, video_storage.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_int(stmt, 4, start_time);
+    sqlite3_bind_int(stmt, 5, end_time);
+
+    sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+    return;
+}
+
+void deleteArea(int camera_id) {
+    sqlite3* db;
+    if (sqlite3_open("../Eagles.db", &db) != SQLITE_OK) {
+        cerr << "Cannot open database: " << sqlite3_errmsg(db) << endl;
+        return;
+    }
+
+    const char* query = "DELETE FROM areas WHERE camera_id = ?";
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) != SQLITE_OK) {
+        cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
+        sqlite3_close(db);
+        return;
+    }
+
+    // 각 컬럼에 해당하는 값 바인딩
+    sqlite3_bind_int(stmt, 1, camera_id);
+    
+    sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+    return;
+}
