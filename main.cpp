@@ -5,9 +5,13 @@
 
 using namespace std;
 
-void startHTTPServer(int);
-
 mutex mtx;
+
+void startHTTPServer(int thread_id) 
+{
+    HTTPServer httpServer(MY_IP, HTTP_S_PORT);
+    httpServer.setHTTPServer();
+}
 
 int main(int argc, char** argv)
 {
@@ -17,8 +21,3 @@ int main(int argc, char** argv)
     return 0;
 }
 
-void startHTTPServer(int thread_id) 
-{
-    HTTPServer httpServer(MY_IP, HTTP_S_PORT);
-    httpServer.setHTTPServer();
-}

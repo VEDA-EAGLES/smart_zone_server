@@ -44,8 +44,10 @@ string fetchCameras();
 string fetchVideos(sqlite3* db);
 bool checkAreasDup(string areaName);
 void insertAreas(int camera_id, string area_name, int x, int y, int width, int height);
+void insertVideo(int camera_id, string video_name, string video_storage, int start_time, int end_time);
 string fetchData();
 string fetchData(int start, int end);
+void deleteArea(int camera_id);
 
 
 #endif // DATABASE_H

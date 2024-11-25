@@ -9,6 +9,7 @@ include_directories(include ${SQLite3_INCLUDE_DIRS})
 set(SOURCE_FILES
     main.cpp
     source/httpServer.cpp
+    source/httpClient.cpp
     source/mainDB.cpp
 )
 
