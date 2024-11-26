@@ -59,7 +59,7 @@ string MainDB::fetchVideos(sqlite3* db) {
     return "";
 }
 
-string MainDB::selectAllfromAwhereBequalC(string A, string B, string C) {
+json MainDB::selectAllfromAwhereBequalC(string A, string B, string C) {
     sqlite3* db;
     if (sqlite3_open("../Eagles.db", &db) != SQLITE_OK) {
         cerr << "Cannot open database: " << sqlite3_errmsg(db) << endl;
@@ -74,27 +74,45 @@ string MainDB::selectAllfromAwhereBequalC(string A, string B, string C) {
         return "";
     }
 
-     // JSON 배열 생성
-    json jsonArray = json::array();
+    json jsonObject = json::object();
 
     // 쿼리 실행 및 결과 처리
     int result = sqlite3_step(stmt);
     while (result == SQLITE_ROW) {
-        // 각 행에 대한 JSON 객체 생성
-        json jsonObject = json::object();
-
         // 컬럼 개수 가져오기
         int cols = sqlite3_column_count(stmt);
 
         // 각 컬럼의 값을 JSON 객체에 추가
         for (int i = 0; i < cols; i++) {
             string colName = sqlite3_column_name(stmt, i);
-            string colValue = (char*)sqlite3_column_text(stmt, i);
-            jsonObject[colName] = colValue;
-        }
 
-        // JSON 객체를 배열에 추가
-        jsonArray.push_back(jsonObject);
+            // 컬럼 타입에 따라 값을 가져오기
+            switch (sqlite3_column_type(stmt, i)) {
+                case SQLITE_INTEGER: {
+                    int colValue = sqlite3_column_int(stmt, i);
+                    jsonObject[colName] = colValue;
+                    break;
+                }
+                case SQLITE_FLOAT: {
+                    double colValue = sqlite3_column_double(stmt, i);
+                    jsonObject[colName] = colValue;
+                    break;
+                }
+                case SQLITE_TEXT: {
+                    string colValue = (char*)sqlite3_column_text(stmt, i);
+                    jsonObject[colName] = colValue;
+                    break;
+                }
+                case SQLITE_BLOB: {
+                    // BLOB 데이터 처리
+                    break;
+                }
+                case SQLITE_NULL: {
+                    jsonObject[colName] = nullptr;
+                    break;
+                }
+            }
+        }
 
         result = sqlite3_step(stmt);
     }
@@ -105,7 +123,75 @@ string MainDB::selectAllfromAwhereBequalC(string A, string B, string C) {
 
     sqlite3_finalize(stmt);
     sqlite3_close(db);
-    return jsonArray.dump();
+    return jsonObject;
+}
+
+json MainDB::selectAllfromAwhereBequalC(string A, string B, int C) {
+    sqlite3* db;
+    if (sqlite3_open("../Eagles.db", &db) != SQLITE_OK) {
+        cerr << "Cannot open database: " << sqlite3_errmsg(db) << endl;
+        return "";
+    }
+   
+    string query = "SELECT * FROM " + A + " WHERE " + B + " = ?";
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
+        cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
+        sqlite3_close(db);
+        return "";
+    }
+    sqlite3_bind_int(stmt, 1, C);
+
+    json jsonObject = json::object();
+    // 쿼리 실행 및 결과 처리
+    int result = sqlite3_step(stmt);
+    while (result == SQLITE_ROW) {
+        // 컬럼 개수 가져오기
+        int cols = sqlite3_column_count(stmt);
+
+        // 각 컬럼의 값을 JSON 객체에 추가
+        for (int i = 0; i < cols; i++) {
+            string colName = sqlite3_column_name(stmt, i);
+
+            // 컬럼 타입에 따라 값을 가져오기
+            switch (sqlite3_column_type(stmt, i)) {
+                case SQLITE_INTEGER: {
+                    int colValue = sqlite3_column_int(stmt, i);
+                    jsonObject[colName] = colValue;
+                    break;
+                }
+                case SQLITE_FLOAT: {
+                    double colValue = sqlite3_column_double(stmt, i);
+                    jsonObject[colName] = colValue;
+                    break;
+                }
+                case SQLITE_TEXT: {
+                    string colValue = (char*)sqlite3_column_text(stmt, i);
+                    jsonObject[colName] = colValue;
+                    break;
+                }
+                case SQLITE_BLOB: {
+                    // BLOB 데이터 처리
+                    break;
+                }
+                case SQLITE_NULL: {
+                    jsonObject[colName] = nullptr;
+                    break;
+                }
+            }
+        }
+
+        // JSON 객체를 배열에 추가
+        // jsonArray.push_back(jsonObject);
+        result = sqlite3_step(stmt);
+    }
+    if (result != SQLITE_DONE) {
+        cerr << "Failed to execute statement: " << sqlite3_errmsg(db) << endl;
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+    return jsonObject;
 }
 
 void MainDB::insertAreas(int camera_id, string area_name, int x, int y, int width, int height) {

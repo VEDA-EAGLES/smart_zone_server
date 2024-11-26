@@ -2,6 +2,8 @@
 #include "httplib.h"
 #include "json.hpp"
 #include "define.h"
+#include "mainDB.h"
+#include "httpClient.h"
 #include <string>
 
 using namespace nlohmann;
