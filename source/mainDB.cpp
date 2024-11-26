@@ -1,7 +1,10 @@
 
 #include "mainDB.h"
 
-string fetchCameras() {
+MainDB::MainDB() {}
+MainDB::~MainDB() {}
+
+string MainDB::fetchCameras() {
     sqlite3* db;
     if (sqlite3_open("../Eagles.db", &db) != SQLITE_OK) {
         cerr << "Cannot open database: " << sqlite3_errmsg(db) << endl;
@@ -33,7 +36,7 @@ string fetchCameras() {
     return cameras_str;
 }
 
-string fetchVideos(sqlite3* db) {
+string MainDB::fetchVideos(sqlite3* db) {
     const char* query = "SELECT * FROM videos";
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) != SQLITE_OK) {
@@ -42,47 +45,70 @@ string fetchVideos(sqlite3* db) {
     }
 
     while (sqlite3_step(stmt) == SQLITE_ROW) {
-        Video video = {
-            sqlite3_column_int(stmt, 0),
-            sqlite3_column_int(stmt, 1),
-            reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2)),
-            reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3)),
-            reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4)),
-            reinterpret_cast<const char*>(sqlite3_column_text(stmt, 5))
-        };
+        // Video video = {
+        //     sqlite3_column_int(stmt, 0),
+        //     sqlite3_column_int(stmt, 1),
+        //     reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2)),
+        //     reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3)),
+        //     reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4)),
+        //     reinterpret_cast<const char*>(sqlite3_column_text(stmt, 5))
+        // };
     }
 
     sqlite3_finalize(stmt);
     return "";
 }
 
-bool checkAreasDup(string areaName) {
+string MainDB::selectAllfromAwhereBequalC(string A, string B, string C) {
     sqlite3* db;
     if (sqlite3_open("../Eagles.db", &db) != SQLITE_OK) {
         cerr << "Cannot open database: " << sqlite3_errmsg(db) << endl;
-        return true;
+        return "";
     }
-    string query = "SELECT area_name FROM areas WHERE area_name = '" + areaName + "'";
+   
+    string query = "SELECT * FROM " + A + " WHERE " + B + " = '" + C + "'";
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
         cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
         sqlite3_close(db);
-        return true;
+        return "";
     }
-    // 중복 areaName 검사
-    bool isDuplicate = false; 
-    while (sqlite3_step(stmt) == SQLITE_ROW) {
-        // 중복 체크
-        isDuplicate = true; 
-        break; 
+
+     // JSON 배열 생성
+    json jsonArray = json::array();
+
+    // 쿼리 실행 및 결과 처리
+    int result = sqlite3_step(stmt);
+    while (result == SQLITE_ROW) {
+        // 각 행에 대한 JSON 객체 생성
+        json jsonObject = json::object();
+
+        // 컬럼 개수 가져오기
+        int cols = sqlite3_column_count(stmt);
+
+        // 각 컬럼의 값을 JSON 객체에 추가
+        for (int i = 0; i < cols; i++) {
+            string colName = sqlite3_column_name(stmt, i);
+            string colValue = (char*)sqlite3_column_text(stmt, i);
+            jsonObject[colName] = colValue;
+        }
+
+        // JSON 객체를 배열에 추가
+        jsonArray.push_back(jsonObject);
+
+        result = sqlite3_step(stmt);
+    }
+
+    if (result != SQLITE_DONE) {
+        cerr << "Failed to execute statement: " << sqlite3_errmsg(db) << endl;
     }
 
     sqlite3_finalize(stmt);
     sqlite3_close(db);
-    return isDuplicate;
+    return jsonArray.dump();
 }
 
-void insertAreas(int camera_id, string area_name, int x, int y, int width, int height) {
+void MainDB::insertAreas(int camera_id, string area_name, int x, int y, int width, int height) {
     sqlite3* db;
     if (sqlite3_open("../Eagles.db", &db) != SQLITE_OK) {
         cerr << "Cannot open database: " << sqlite3_errmsg(db) << endl;
@@ -112,7 +138,7 @@ void insertAreas(int camera_id, string area_name, int x, int y, int width, int h
     return;
 }
 
-string fetchData() {
+string MainDB::fetchData() {
     sqlite3* db;
 
     if (sqlite3_open("../Eagles.db", &db) != SQLITE_OK) {
@@ -147,7 +173,7 @@ string fetchData() {
     return data_str;
 }
 
-string fetchData(int start, int end) {
+string MainDB::fetchData(int start, int end) {
     sqlite3* db;
 
     if (sqlite3_open("../Eagles.db", &db) != SQLITE_OK) {
@@ -183,7 +209,7 @@ string fetchData(int start, int end) {
     return data_str;
 }
 
-void insertVideo(int camera_id, string video_name, string video_storage, int start_time, int end_time) {
+void MainDB::insertVideo(int camera_id, string video_name, string video_storage, int start_time, int end_time) {
     sqlite3* db;
     if (sqlite3_open("../Eagles.db", &db) != SQLITE_OK) {
         cerr << "Cannot open database: " << sqlite3_errmsg(db) << endl;
@@ -212,7 +238,7 @@ void insertVideo(int camera_id, string video_name, string video_storage, int sta
     return;
 }
 
-void deleteArea(int camera_id) {
+void MainDB::deleteArea(int camera_id) {
     sqlite3* db;
     if (sqlite3_open("../Eagles.db", &db) != SQLITE_OK) {
         cerr << "Cannot open database: " << sqlite3_errmsg(db) << endl;
