@@ -25,6 +25,7 @@ public:
     void insertVideo(int camera_id, string video_name, string video_storage, int start_time, int end_time);
     string fetchData();
     string fetchData(int start, int end);
+    void deleteArea(int camera_id, int area_id);
     void deleteArea(int camera_id);
 };
 
