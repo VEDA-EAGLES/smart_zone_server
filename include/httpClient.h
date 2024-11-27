@@ -18,7 +18,8 @@ public:
     HTTPClient();
     ~HTTPClient();
     void insertArea(string camIp, json jsonData);
-    void deleteArea(string camIp, string areaId);
+    void deleteArea(string camIp);
+    void deleteArea(string camIp, int areaId);
 };
 
 

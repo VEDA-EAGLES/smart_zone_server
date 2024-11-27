@@ -323,11 +323,54 @@ void MainDB::insertVideo(int camera_id, string video_name, string video_storage,
     sqlite3_close(db);
     return;
 }
+// 해당 영역 삭제
+void MainDB::deleteArea(int camera_id, int area_id) {
+    sqlite3* db;
+    if (sqlite3_open("../Eagles.db", &db) != SQLITE_OK) {
+        cerr << "Cannot open database: " << sqlite3_errmsg(db) << endl;
+        return;
+    }
 
+    // 외래 키 제약 조건 활성화
+    char* errmsg;
+    if (sqlite3_exec(db, "PRAGMA foreign_keys = ON;", nullptr, nullptr, &errmsg) != SQLITE_OK) {
+        cerr << "Failed to enable foreign keys: " << errmsg << endl;
+        sqlite3_free(errmsg);
+        sqlite3_close(db);
+        return;
+    }
+
+    const char* query = "DELETE FROM areas WHERE camera_id = ? AND area_id = ?";
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) != SQLITE_OK) {
+        cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
+        sqlite3_close(db);
+        return;
+    }
+
+    // 각 컬럼에 해당하는 값 바인딩
+    sqlite3_bind_int(stmt, 1, camera_id);
+    sqlite3_bind_int(stmt, 2, area_id);
+    
+    sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+    return;
+}
+// 영역 전체삭제
 void MainDB::deleteArea(int camera_id) {
     sqlite3* db;
     if (sqlite3_open("../Eagles.db", &db) != SQLITE_OK) {
         cerr << "Cannot open database: " << sqlite3_errmsg(db) << endl;
+        return;
+    }
+
+    // 외래 키 제약 조건 활성화
+    char* errmsg;
+    if (sqlite3_exec(db, "PRAGMA foreign_keys = ON;", nullptr, nullptr, &errmsg) != SQLITE_OK) {
+        cerr << "Failed to enable foreign keys: " << errmsg << endl;
+        sqlite3_free(errmsg);
+        sqlite3_close(db);
         return;
     }
 
