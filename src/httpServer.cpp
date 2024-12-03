@@ -78,34 +78,38 @@ void HTTPServer::setResponse()
 
     server.Delete("/area/delete", [&mainDB, &httpClient](const httplib::Request& req, httplib::Response& res) {
         mtx.lock();
-        json jsonData = json::parse(req.body);
-        int cameraId = jsonData["camera_id"];
-        int areaId = jsonData["area_id"];
+        
+        if (req.has_param("camera_id") && req.has_param("area_id")) {
+            int cameraId = stoi(req.get_param_value("camera_id"));
+            int areaId = stoi(req.get_param_value("area_id"));
+            // cameras 테이블에서 camera_id로 camera_ip 정보 가져오기
+            json selected = mainDB.selectAllfromAwhereBequalC("cameras","camera_id", cameraId);
+            string camIp = selected["camera_ip"];
 
-        // cameras 테이블에서 camera_id로 camera_ip 정보 가져오기
-        json selected = mainDB.selectAllfromAwhereBequalC("cameras","camera_id", cameraId);
-        string camIp = selected["camera_ip"];
-
-        // DB에서 해당 카메라의 영역 삭제
-        mainDB.deleteArea(cameraId, areaId);
-        // 해당 IP의 카메라로 해당 areaId의 영역 삭제 알리기
-        httpClient.deleteArea(camIp, areaId);
+            // DB에서 해당 카메라의 영역 삭제
+            mainDB.deleteArea(cameraId, areaId);
+            // 해당 IP의 카메라로 해당 areaId의 영역 삭제 알리기
+            httpClient.deleteArea(camIp, areaId);
+        } else {
+            cout << " area delete error " << endl;
+        }
         mtx.unlock();
 	});
     
     server.Delete("/area/all", [&mainDB, &httpClient](const httplib::Request& req, httplib::Response& res) {
         mtx.lock();
-        json jsonData = json::parse(req.body);
-        int cameraId = jsonData["camera_id"];
-
-        // cameras 테이블에서 camera_id로 camera_ip 정보 가져오기
-        json selected = mainDB.selectAllfromAwhereBequalC("cameras","camera_id", cameraId);
-        string camIp = selected["camera_ip"];
-
-        // DB에서 해당 카메라의 영역 전체 삭제
-        mainDB.deleteArea(cameraId);
-        // 해당 IP의 카메라로 영역 전체 삭제 알리기
-        httpClient.deleteArea(camIp);
+        if (req.has_param("camera_id")) {
+            int cameraId = stoi(req.get_param_value("camera_id"));
+            // cameras 테이블에서 camera_id로 camera_ip 정보 가져오기
+            json selected = mainDB.selectAllfromAwhereBequalC("cameras","camera_id", cameraId);
+            string camIp = selected["camera_ip"];
+            // DB에서 해당 카메라의 영역 전체 삭제
+            mainDB.deleteArea(cameraId);
+            // 해당 IP의 카메라로 영역 전체 삭제 알리기
+            httpClient.deleteArea(camIp);
+        } else {
+            cout << " area all delete error" << endl;
+        }
         mtx.unlock();
 	});
 
@@ -123,13 +127,12 @@ void HTTPServer::setResponse()
         // httpClient.insertArea();
         mtx.unlock();
 	});
-
 }
 
 void HTTPServer::setHTTPServer()
 {
-    cout << " - start smart_zone_server - " << endl;
     setResponse();
+    cout << " - start smart_zone_server - " << endl;
     server.listen(this->ip, this->port);
 }
 
