@@ -16,7 +16,7 @@ void HTTPServer::setResponse()
 
     server.Get("/device/all", [&mainDB](const httplib::Request& req, httplib::Response& res) {
         mtx.lock();
-        // 클라이언트에게 카메라 정보 response
+        // 클라이언트에게 카메라 정보 보내기
         string jsonBody = mainDB.fetchCameras();
         res.set_content(jsonBody, "application/json");
         mtx.unlock();
@@ -25,17 +25,69 @@ void HTTPServer::setResponse()
     server.Get("/peoplecnt/all", [&mainDB](const httplib::Request& req, httplib::Response& res) {
         mtx.lock();
         // 클라이언트에게 사람수(전체) response
-        string jsonBody = mainDB.fetchData();
-        res.set_content(jsonBody, "application/json");
+        if (req.has_param("camera_id")) {
+            int cameraId = stoi(req.get_param_value("camera_id"));
+            string jsonBody = mainDB.fetchPeopleCnt(cameraId);
+            res.set_content(jsonBody, "application/json");
+        }
         mtx.unlock();
 	});
 
     server.Get("/peoplecnt/unit", [&mainDB](const httplib::Request& req, httplib::Response& res) {
         mtx.lock();
         // 클라이언트에게 기간에 따른 사람수(시작/끝) 정보 response
-        string start = req.get_param_value("start"), end = req.get_param_value("end");
-        string jsonBody = mainDB.fetchData(stoi(start),stoi(end));
-        res.set_content(jsonBody, "application/json");
+        if (req.has_param("camera_id") && req.has_param("start") && req.has_param("end")) {
+            int cameraId = stoi(req.get_param_value("camera_id"));
+            string start = req.get_param_value("start"), end = req.get_param_value("end");
+            string jsonBody = mainDB.fetchPeopleCnt(cameraId,stoi(start),stoi(end));
+            res.set_content(jsonBody, "application/json");
+        }
+        mtx.unlock();
+	});
+
+    server.Get("/peoplestay/all", [&mainDB](const httplib::Request& req, httplib::Response& res) {
+        mtx.lock();
+        // 클라이언트에게 사람수(전체) response
+        if (req.has_param("camera_id")) {
+            int cameraId = stoi(req.get_param_value("camera_id"));
+            string jsonBody = mainDB.fetchPeopleStay(cameraId);
+            res.set_content(jsonBody, "application/json");
+        }
+        mtx.unlock();
+	});
+
+     server.Get("/peoplestay/unit", [&mainDB](const httplib::Request& req, httplib::Response& res) {
+        mtx.lock();
+        // 클라이언트에게 기간에 따른 사람수(시작/끝) 정보 response
+        if (req.has_param("camera_id") && req.has_param("start") && req.has_param("end")) {
+            int cameraId = stoi(req.get_param_value("camera_id"));
+            string start = req.get_param_value("start"), end = req.get_param_value("end");
+            string jsonBody = mainDB.fetchPeopleStay(cameraId,stoi(start),stoi(end));
+            res.set_content(jsonBody, "application/json");
+        }
+        mtx.unlock();
+	});
+
+    server.Get("/peoplemove/all", [&mainDB](const httplib::Request& req, httplib::Response& res) {
+        mtx.lock();
+        // 클라이언트에게 사람수(전체) response
+        if (req.has_param("camera_id")) {
+            int cameraId = stoi(req.get_param_value("camera_id"));
+            string jsonBody = mainDB.fetchPeopleStay(cameraId);
+            res.set_content(jsonBody, "application/json");
+        }
+        mtx.unlock();
+	});
+
+     server.Get("/peoplemove/unit", [&mainDB](const httplib::Request& req, httplib::Response& res) {
+        mtx.lock();
+        // 클라이언트에게 기간에 따른 사람수(시작/끝) 정보 response
+        if (req.has_param("camera_id") && req.has_param("start") && req.has_param("end")) {
+            int cameraId = stoi(req.get_param_value("camera_id"));
+            string start = req.get_param_value("start"), end = req.get_param_value("end");
+            string jsonBody = mainDB.fetchPeopleStay(cameraId,stoi(start),stoi(end));
+            res.set_content(jsonBody, "application/json");
+        }
         mtx.unlock();
 	});
 
@@ -48,7 +100,6 @@ void HTTPServer::setResponse()
         json selected = mainDB.selectAllfromAwhereBequalC("areas","area_name",areaName);
         string jsonHandler;
         if (selected.empty()) {
-            json okJson; okJson["status"] = 200; jsonHandler = okJson.dump();
             // 디비에 영역 저장하기
             mainDB.insertAreas(
                 cameraId,
@@ -56,7 +107,8 @@ void HTTPServer::setResponse()
                 jsonData["x"],
                 jsonData["y"],
                 jsonData["width"],
-                jsonData["height"]
+                jsonData["height"],
+                jsonData["color"]
             );
 
             // cameras 테이블에서 camera_id로 camera_ip 정보 가져오기
@@ -68,6 +120,8 @@ void HTTPServer::setResponse()
         
             // 해당 IP의 카메라로 영역정보를 담아 HTTP로 보내기
             httpClient.insertArea(camIp,selected);
+
+            json okJson; okJson["status"] = 200; jsonHandler = okJson.dump();
         }
         else {
             json errJson; errJson["err_msg"] = "Duplicate Name"; jsonHandler = errJson.dump();
@@ -76,9 +130,30 @@ void HTTPServer::setResponse()
         mtx.unlock();
 	});
 
-    server.Delete("/area/delete", [&mainDB, &httpClient](const httplib::Request& req, httplib::Response& res) {
+    server.Delete("/area/all", [&mainDB, &httpClient](const httplib::Request& req, httplib::Response& res) {
         mtx.lock();
-        
+        string jsonHandler;
+        if (req.has_param("camera_id")) {
+            int cameraId = stoi(req.get_param_value("camera_id"));
+            // cameras 테이블에서 camera_id로 camera_ip 정보 가져오기
+            json selected = mainDB.selectAllfromAwhereBequalC("cameras","camera_id", cameraId);
+            string camIp = selected["camera_ip"];
+            // DB에서 해당 카메라의 영역 전체 삭제
+            mainDB.deleteArea(cameraId);
+            // 해당 IP의 카메라로 영역 전체 삭제 알리기
+            httpClient.deleteArea(camIp);
+
+            json okJson; okJson["status"] = 200; jsonHandler = okJson.dump();
+        } else {
+            json errJson; errJson["err_msg"] = "Delete area all error"; jsonHandler = errJson.dump();
+        }
+        res.set_content(jsonHandler, "application/json");
+        mtx.unlock();
+	});
+
+    server.Delete("/area", [&mainDB, &httpClient](const httplib::Request& req, httplib::Response& res) {
+        mtx.lock();
+        string jsonHandler;
         if (req.has_param("camera_id") && req.has_param("area_id")) {
             int cameraId = stoi(req.get_param_value("camera_id"));
             int areaId = stoi(req.get_param_value("area_id"));
@@ -90,43 +165,15 @@ void HTTPServer::setResponse()
             mainDB.deleteArea(cameraId, areaId);
             // 해당 IP의 카메라로 해당 areaId의 영역 삭제 알리기
             httpClient.deleteArea(camIp, areaId);
+
+            json okJson; okJson["status"] = 200; jsonHandler = okJson.dump();
         } else {
-            cout << " area delete error " << endl;
+            json errJson; errJson["err_msg"] = "Delete area error"; jsonHandler = errJson.dump();
         }
-        mtx.unlock();
-	});
-    
-    server.Delete("/area/all", [&mainDB, &httpClient](const httplib::Request& req, httplib::Response& res) {
-        mtx.lock();
-        if (req.has_param("camera_id")) {
-            int cameraId = stoi(req.get_param_value("camera_id"));
-            // cameras 테이블에서 camera_id로 camera_ip 정보 가져오기
-            json selected = mainDB.selectAllfromAwhereBequalC("cameras","camera_id", cameraId);
-            string camIp = selected["camera_ip"];
-            // DB에서 해당 카메라의 영역 전체 삭제
-            mainDB.deleteArea(cameraId);
-            // 해당 IP의 카메라로 영역 전체 삭제 알리기
-            httpClient.deleteArea(camIp);
-        } else {
-            cout << " area all delete error" << endl;
-        }
+        res.set_content(jsonHandler, "application/json");
         mtx.unlock();
 	});
 
-    server.Post("/video", [&mainDB](const httplib::Request& req, httplib::Response& res) {
-        mtx.lock();
-        json jsonData = json::parse(req.body);
-        cout << req.body << endl;
-        // mainDB.insertVideo(
-        //     jsonData["camera_id"],
-        //     jsonData["video_name"],
-        //     jsonData["video_storage"],
-        //     jsonData["start_time"],
-        //     jsonData["end_time"]
-        // );
-        // httpClient.insertArea();
-        mtx.unlock();
-	});
 }
 
 void HTTPServer::setHTTPServer()

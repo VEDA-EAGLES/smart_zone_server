@@ -15,7 +15,6 @@ void HTTPClient::insertArea(string camIp, json jsonData)
     if (!res) {  
         std::cout << "Error: " << res.error() << std::endl;
     } 
-
 }
 
 
@@ -33,11 +32,9 @@ void HTTPClient::deleteArea(string camIp, int areaId)
 {
     httplib::Client cli(camIp,HTTP_C_PORT);
     
-    json data;  data["area_id"] = areaId;
+    string req = "/area?area_id=" + areaId;
 
-    string jsonBody = data.dump(); // JSON 문자열로 변환
-
-    auto res = cli.Delete("/area/delete", jsonBody, "application/json"); 
+    auto res = cli.Delete(req); 
     if (!res) {  
         std::cout << "Error: " << res.error() << std::endl;
     } 
