@@ -28,7 +28,7 @@ string MainDB::fetchCameras() {
         cameras.push_back(camera); // JSON 배열에 추가
     }
     sqlite3_finalize(stmt);
-    string cameras_str = cameras.dump(4);
+    string cameras_str = cameras.dump();
 
     // 데이터베이스 연결 닫기
     sqlite3_close(db);
@@ -36,27 +36,246 @@ string MainDB::fetchCameras() {
     return cameras_str;
 }
 
-string MainDB::fetchVideos(sqlite3* db) {
-    const char* query = "SELECT * FROM videos";
-    sqlite3_stmt* stmt;
-    if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) != SQLITE_OK) {
-        cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
+string MainDB::fetchPeopleCnt(int cameraId) {
+    sqlite3* db;
+
+    if (sqlite3_open("../Eagles.db", &db) != SQLITE_OK) {
+        cerr << "Cannot open database: " << sqlite3_errmsg(db) << endl;
         return "";
     }
 
-    while (sqlite3_step(stmt) == SQLITE_ROW) {
-        // Video video = {
-        //     sqlite3_column_int(stmt, 0),
-        //     sqlite3_column_int(stmt, 1),
-        //     reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2)),
-        //     reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3)),
-        //     reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4)),
-        //     reinterpret_cast<const char*>(sqlite3_column_text(stmt, 5))
-        // };
+    const char* query = "SELECT * FROM people_count WHERE camera_id = ?";
+    sqlite3_stmt* stmt;
+
+    if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) != SQLITE_OK) {
+        cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
+        sqlite3_close(db);
+        return "";
     }
 
+    sqlite3_bind_int(stmt, 1, cameraId); 
+
+    json datas = json::array(); // JSON 배열 생성
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        json data = {
+            {"data_id", sqlite3_column_int(stmt, 0)},
+            {"area_id", sqlite3_column_int(stmt, 1)},
+            {"people_count", sqlite3_column_int(stmt, 2)},
+            {"start_time", sqlite3_column_int(stmt, 3)},
+            {"end_time", sqlite3_column_int(stmt, 4)}
+        };
+        datas.push_back(data); // JSON 배열에 추가
+    }
+
+    json result;
+    result["data"] = datas;
+
     sqlite3_finalize(stmt);
-    return "";
+    string data_str = result.dump();
+    sqlite3_close(db);
+    return data_str;
+}
+
+string MainDB::fetchPeopleCnt(int cameraId, int start, int end) {
+    sqlite3* db;
+
+    if (sqlite3_open("../Eagles.db", &db) != SQLITE_OK) {
+        cerr << "Cannot open database: " << sqlite3_errmsg(db) << endl;
+        return "";
+    }
+
+    const char* query = "SELECT * FROM people_count WHERE camera_id = ? AND start_time >= ? AND end_time <= ?;";
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) != SQLITE_OK) {
+        cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
+        sqlite3_close(db);
+        return "";
+    }
+
+    sqlite3_bind_int(stmt, 1, cameraId); 
+    sqlite3_bind_int(stmt, 2, start); 
+    sqlite3_bind_int(stmt, 3, end);   
+    json datas = json::array(); // JSON 배열 생성
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        json data = {
+            {"data_id", sqlite3_column_int(stmt, 0)},
+            {"area_id", sqlite3_column_int(stmt, 1)},
+            {"people_count", sqlite3_column_int(stmt, 2)},
+            {"start_time", sqlite3_column_int(stmt, 3)},
+            {"end_time", sqlite3_column_int(stmt, 4)}
+        };
+        datas.push_back(data); // JSON 배열에 추가
+    }
+
+    json result;
+    result["data"] = datas;
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+    string data_str = result.dump();
+    return data_str;
+}
+
+string MainDB::fetchPeopleStay(int cameraId) {
+    sqlite3* db;
+
+    if (sqlite3_open("../Eagles.db", &db) != SQLITE_OK) {
+        cerr << "Cannot open database: " << sqlite3_errmsg(db) << endl;
+        return "";
+    }
+
+    const char* query = "SELECT * FROM people_stay WHERE camera_id = ?";
+    sqlite3_stmt* stmt;
+
+    if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) != SQLITE_OK) {
+        cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
+        sqlite3_close(db);
+        return "";
+    }
+
+    sqlite3_bind_int(stmt, 1, cameraId); 
+
+    json datas = json::array(); // JSON 배열 생성
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        json data = {
+            {"data_id", sqlite3_column_int(stmt, 0)},
+            {"area_id", sqlite3_column_int(stmt, 1)},
+            {"stay_time", sqlite3_column_int(stmt, 2)},
+            {"start_time", sqlite3_column_int(stmt, 3)},
+            {"end_time", sqlite3_column_int(stmt, 4)}
+        };
+        datas.push_back(data); // JSON 배열에 추가
+    }
+
+    json result;
+    result["data"] = datas;
+
+    sqlite3_finalize(stmt);
+    string data_str = result.dump();
+    sqlite3_close(db);
+    return data_str;
+}
+
+string MainDB::fetchPeopleStay(int cameraId, int start, int end) {
+    sqlite3* db;
+
+    if (sqlite3_open("../Eagles.db", &db) != SQLITE_OK) {
+        cerr << "Cannot open database: " << sqlite3_errmsg(db) << endl;
+        return "";
+    }
+
+    const char* query = "SELECT * FROM people_stay WHERE camera_id = ? AND start_time >= ? AND end_time <= ?;";
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) != SQLITE_OK) {
+        cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
+        sqlite3_close(db);
+        return "";
+    }
+
+    sqlite3_bind_int(stmt, 1, cameraId); 
+    sqlite3_bind_int(stmt, 2, start); 
+    sqlite3_bind_int(stmt, 3, end);   
+    json datas = json::array(); // JSON 배열 생성
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        json data = {
+            {"data_id", sqlite3_column_int(stmt, 0)},
+            {"area_id", sqlite3_column_int(stmt, 1)},
+            {"stay_time", sqlite3_column_int(stmt, 2)},
+            {"start_time", sqlite3_column_int(stmt, 3)},
+            {"end_time", sqlite3_column_int(stmt, 4)}
+        };
+        datas.push_back(data); // JSON 배열에 추가
+    }
+
+    json result;
+    result["data"] = datas;
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+    string data_str = result.dump();
+    return data_str;
+}
+
+string MainDB::fetchPeopleMove(int cameraId) {
+    sqlite3* db;
+
+    if (sqlite3_open("../Eagles.db", &db) != SQLITE_OK) {
+        cerr << "Cannot open database: " << sqlite3_errmsg(db) << endl;
+        return "";
+    }
+
+    const char* query = "SELECT * FROM people_move WHERE camera_id = ?";
+    sqlite3_stmt* stmt;
+
+    if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) != SQLITE_OK) {
+        cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
+        sqlite3_close(db);
+        return "";
+    }
+
+    sqlite3_bind_int(stmt, 1, cameraId); 
+
+    json datas = json::array(); // JSON 배열 생성
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        json data = {
+            {"data_id", sqlite3_column_int(stmt, 0)},
+            {"from_area_id", sqlite3_column_int(stmt, 1)},
+            {"to_area_id", sqlite3_column_int(stmt, 2)},
+            {"count", sqlite3_column_int(stmt, 3)},
+            {"start_time", sqlite3_column_int(stmt, 4)},
+            {"end_time", sqlite3_column_int(stmt, 5)}
+        };
+        datas.push_back(data); // JSON 배열에 추가
+    }
+
+    json result;
+    result["data"] = datas;
+
+    sqlite3_finalize(stmt);
+    string data_str = result.dump();
+    sqlite3_close(db);
+    return data_str;
+}
+
+string MainDB::fetchPeopleMove(int cameraId, int start, int end) {
+    sqlite3* db;
+
+    if (sqlite3_open("../Eagles.db", &db) != SQLITE_OK) {
+        cerr << "Cannot open database: " << sqlite3_errmsg(db) << endl;
+        return "";
+    }
+
+    const char* query = "SELECT * FROM people_move WHERE camera_id = ? AND start_time >= ? AND end_time <= ?;";
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) != SQLITE_OK) {
+        cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
+        sqlite3_close(db);
+        return "";
+    }
+
+    sqlite3_bind_int(stmt, 1, cameraId); 
+    sqlite3_bind_int(stmt, 2, start); 
+    sqlite3_bind_int(stmt, 3, end);   
+    json datas = json::array(); // JSON 배열 생성
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        json data = {
+            {"data_id", sqlite3_column_int(stmt, 0)},
+            {"from_area_id", sqlite3_column_int(stmt, 1)},
+            {"to_area_id", sqlite3_column_int(stmt, 2)},
+            {"count", sqlite3_column_int(stmt, 3)},
+            {"start_time", sqlite3_column_int(stmt, 4)},
+            {"end_time", sqlite3_column_int(stmt, 5)}
+        };
+        datas.push_back(data); // JSON 배열에 추가
+    }
+
+    json result;
+    result["data"] = datas;
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+    string data_str = result.dump();
+    return data_str;
 }
 
 json MainDB::selectAllfromAwhereBequalC(string A, string B, string C) {
@@ -194,14 +413,14 @@ json MainDB::selectAllfromAwhereBequalC(string A, string B, int C) {
     return jsonObject;
 }
 
-void MainDB::insertAreas(int camera_id, string area_name, int x, int y, int width, int height) {
+void MainDB::insertAreas(int camera_id, string area_name, int x, int y, int width, int height, string color) {
     sqlite3* db;
     if (sqlite3_open("../Eagles.db", &db) != SQLITE_OK) {
         cerr << "Cannot open database: " << sqlite3_errmsg(db) << endl;
         return;
     }
 
-    const char* query = "INSERT INTO areas (camera_id, area_name, x, y, width, height) VALUES (?, ?, ?, ?, ?, ?)"; 
+    const char* query = "INSERT INTO areas (camera_id, area_name, x, y, width, height, color) VALUES (?, ?, ?, ?, ?, ?, ?)"; 
 
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) != SQLITE_OK) {
@@ -210,13 +429,13 @@ void MainDB::insertAreas(int camera_id, string area_name, int x, int y, int widt
         return;
     }
 
-    // 각 컬럼에 해당하는 값 바인딩
     sqlite3_bind_int(stmt, 1, camera_id);
     sqlite3_bind_text(stmt, 2, area_name.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_int(stmt, 3, x);
     sqlite3_bind_int(stmt, 4, y);
     sqlite3_bind_int(stmt, 5, width);
     sqlite3_bind_int(stmt, 6, height);
+    sqlite3_bind_text(stmt, 7, color.c_str(), -1, SQLITE_TRANSIENT);
 
     sqlite3_step(stmt);
     sqlite3_finalize(stmt);
@@ -224,105 +443,6 @@ void MainDB::insertAreas(int camera_id, string area_name, int x, int y, int widt
     return;
 }
 
-string MainDB::fetchData() {
-    sqlite3* db;
-
-    if (sqlite3_open("../Eagles.db", &db) != SQLITE_OK) {
-        cerr << "Cannot open database: " << sqlite3_errmsg(db) << endl;
-        return "";
-    }
-
-    const char* query = "SELECT * FROM data";
-    sqlite3_stmt* stmt;
-
-    if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) != SQLITE_OK) {
-        cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
-        sqlite3_close(db);
-        return "";
-    }
-
-    json datas = json::array(); // JSON 배열 생성
-    while (sqlite3_step(stmt) == SQLITE_ROW) {
-        json data = {
-            {"data_id", sqlite3_column_int(stmt, 0)},
-            {"area_id", sqlite3_column_int(stmt, 1)},
-            {"people_cnt", sqlite3_column_int(stmt, 2)},
-            {"start_time", sqlite3_column_int(stmt, 3)},
-            {"end_time", sqlite3_column_int(stmt, 4)}
-        };
-        datas.push_back(data); // JSON 배열에 추가
-    }
-
-    sqlite3_finalize(stmt);
-    string data_str = datas.dump(4);
-    sqlite3_close(db);
-    return data_str;
-}
-
-string MainDB::fetchData(int start, int end) {
-    sqlite3* db;
-
-    if (sqlite3_open("../Eagles.db", &db) != SQLITE_OK) {
-        cerr << "Cannot open database: " << sqlite3_errmsg(db) << endl;
-        return "";
-    }
-
-    const char* query = "SELECT * FROM data WHERE start_time >= ? AND end_time <= ?;";
-    sqlite3_stmt* stmt;
-    if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) != SQLITE_OK) {
-        cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
-        sqlite3_close(db);
-        return "";
-    }
-
-    sqlite3_bind_int(stmt, 1, start); // Bind start to the first placeholder
-    sqlite3_bind_int(stmt, 2, end);   // Bind end to the second placeholder
-    json datas = json::array(); // JSON 배열 생성
-    while (sqlite3_step(stmt) == SQLITE_ROW) {
-        json data = {
-            {"data_id", sqlite3_column_int(stmt, 0)},
-            {"area_id", sqlite3_column_int(stmt, 1)},
-            {"people_cnt", sqlite3_column_int(stmt, 2)},
-            {"start_time", sqlite3_column_int(stmt, 3)},
-            {"end_time", sqlite3_column_int(stmt, 4)}
-        };
-        datas.push_back(data); // JSON 배열에 추가
-    }
-
-    sqlite3_finalize(stmt);
-    sqlite3_close(db);
-    string data_str = datas.dump(4);
-    return data_str;
-}
-
-void MainDB::insertVideo(int camera_id, string video_name, string video_storage, int start_time, int end_time) {
-    sqlite3* db;
-    if (sqlite3_open("../Eagles.db", &db) != SQLITE_OK) {
-        cerr << "Cannot open database: " << sqlite3_errmsg(db) << endl;
-        return;
-    }
-
-    const char* query = "INSERT INTO areas (camera_id, video_name, video_storage, start_time, end_time) VALUES (?, ?, ?, ?, ?)"; 
-
-    sqlite3_stmt* stmt;
-    if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) != SQLITE_OK) {
-        cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
-        sqlite3_close(db);
-        return;
-    }
-
-    // 각 컬럼에 해당하는 값 바인딩
-    sqlite3_bind_int(stmt, 1, camera_id);
-    sqlite3_bind_text(stmt, 2, video_name.c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_text(stmt, 3, video_storage.c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_int(stmt, 4, start_time);
-    sqlite3_bind_int(stmt, 5, end_time);
-
-    sqlite3_step(stmt);
-    sqlite3_finalize(stmt);
-    sqlite3_close(db);
-    return;
-}
 // 해당 영역 삭제
 void MainDB::deleteArea(int camera_id, int area_id) {
     sqlite3* db;
