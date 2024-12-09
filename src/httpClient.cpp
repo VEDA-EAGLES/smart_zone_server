@@ -32,9 +32,9 @@ void HTTPClient::deleteArea(string camIp, int areaId)
 {
     httplib::Client cli(camIp,HTTP_C_PORT);
     
-    string req = "/area?area_id=" + areaId;
+    string req = "/area?area_id=" + to_string(areaId);
 
-    auto res = cli.Delete(req); 
+    auto res = cli.Delete(req.c_str()); 
     if (!res) {  
         std::cout << "Error: " << res.error() << std::endl;
     } 

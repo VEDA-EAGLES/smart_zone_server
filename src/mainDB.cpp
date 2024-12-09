@@ -15,8 +15,8 @@ string MainDB::fetchCameras() {
     if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) != SQLITE_OK) {
         cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
         sqlite3_close(db);
-        return "";
     }
+        return "";
     json cameras = json::array(); // JSON 배열 생성
 
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -27,8 +27,12 @@ string MainDB::fetchCameras() {
         };
         cameras.push_back(camera); // JSON 배열에 추가
     }
+
+    json result;
+    result["cameras"] = cameras;
+
     sqlite3_finalize(stmt);
-    string cameras_str = cameras.dump();
+    string cameras_str = result.dump();
 
     // 데이터베이스 연결 닫기
     sqlite3_close(db);
@@ -294,6 +298,7 @@ json MainDB::selectAllfromAwhereBequalC(string A, string B, string C) {
     }
 
     json jsonObject = json::object();
+    json jsonArray = json::array();
 
     // 쿼리 실행 및 결과 처리
     int result = sqlite3_step(stmt);
@@ -333,6 +338,7 @@ json MainDB::selectAllfromAwhereBequalC(string A, string B, string C) {
             }
         }
 
+        jsonArray.push_back(jsonObject);
         result = sqlite3_step(stmt);
     }
 
@@ -342,7 +348,7 @@ json MainDB::selectAllfromAwhereBequalC(string A, string B, string C) {
 
     sqlite3_finalize(stmt);
     sqlite3_close(db);
-    return jsonObject;
+    return jsonArray;
 }
 
 json MainDB::selectAllfromAwhereBequalC(string A, string B, int C) {
@@ -362,6 +368,8 @@ json MainDB::selectAllfromAwhereBequalC(string A, string B, int C) {
     sqlite3_bind_int(stmt, 1, C);
 
     json jsonObject = json::object();
+    json jsonArray = json::array();
+
     // 쿼리 실행 및 결과 처리
     int result = sqlite3_step(stmt);
     while (result == SQLITE_ROW) {
@@ -401,16 +409,15 @@ json MainDB::selectAllfromAwhereBequalC(string A, string B, int C) {
         }
 
         // JSON 객체를 배열에 추가
-        // jsonArray.push_back(jsonObject);
+        jsonArray.push_back(jsonObject);
         result = sqlite3_step(stmt);
     }
     if (result != SQLITE_DONE) {
         cerr << "Failed to execute statement: " << sqlite3_errmsg(db) << endl;
     }
-
     sqlite3_finalize(stmt);
     sqlite3_close(db);
-    return jsonObject;
+    return jsonArray;
 }
 
 void MainDB::insertAreas(int camera_id, string area_name, int x, int y, int width, int height, string color) {
