@@ -156,7 +156,7 @@ void HTTPServer::setResponse()
             json okJson; okJson["status"] = 200; jsonHandler = okJson.dump();
         }
         else {
-            json errJson; errJson["err_msg"] = "Duplicate Name"; jsonHandler = errJson.dump();
+            json errJson; errJson["status"] = -1; jsonHandler = errJson.dump();
         }
         res.set_content(jsonHandler, "application/json");
         mtx.unlock();
@@ -179,7 +179,7 @@ void HTTPServer::setResponse()
 
             json okJson; okJson["status"] = 200; jsonHandler = okJson.dump();
         } else {
-            json errJson; errJson["err_msg"] = "Delete area all error"; jsonHandler = errJson.dump();
+            json errJson; errJson["status"] = -1; jsonHandler = errJson.dump();
         }
         res.set_content(jsonHandler, "application/json");
         mtx.unlock();
@@ -202,7 +202,7 @@ void HTTPServer::setResponse()
 
             json okJson; okJson["status"] = 200; jsonHandler = okJson.dump();
         } else {
-            json errJson; errJson["err_msg"] = "Delete area error"; jsonHandler = errJson.dump();
+            json errJson; errJson["status"] = -1; jsonHandler = errJson.dump();
         }
         res.set_content(jsonHandler, "application/json");
         mtx.unlock();
