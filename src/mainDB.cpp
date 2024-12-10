@@ -420,7 +420,8 @@ json MainDB::selectAllfromAwhereBequalC(string A, string B, int C) {
     return jsonArray;
 }
 
-void MainDB::insertAreas(int camera_id, string area_name, int x, int y, int width, int height, string color) {
+void MainDB::insertAreas(int camera_id, string area_name, int x, int y, int width, int height, string color) 
+{
     sqlite3* db;
     if (sqlite3_open("../Eagles.db", &db) != SQLITE_OK) {
         cerr << "Cannot open database: " << sqlite3_errmsg(db) << endl;
@@ -449,6 +450,94 @@ void MainDB::insertAreas(int camera_id, string area_name, int x, int y, int widt
     sqlite3_close(db);
     return;
 }
+
+ void MainDB::insertPeopleCount(int area_id, int people_count, int start_time, int end_time)
+ {
+    sqlite3* db;
+    if (sqlite3_open("../Eagles.db", &db) != SQLITE_OK) {
+        cerr << "Cannot open database: " << sqlite3_errmsg(db) << endl;
+        return;
+    }
+
+    const char* query = "INSERT INTO people_count (area_id, people_count, start_time, end_time) VALUES (?, ?, ?, ?)"; 
+
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) != SQLITE_OK) {
+        cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
+        sqlite3_close(db);
+        return;
+    }
+
+    sqlite3_bind_int(stmt, 1, area_id);
+    sqlite3_bind_int(stmt, 2, people_count);
+    sqlite3_bind_int(stmt, 3, start_time);
+    sqlite3_bind_int(stmt, 4, end_time);
+
+    sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+    return;
+
+ }
+
+  void MainDB::insertPeopleMove(int from_area_id, int to_area_id, int count, int start_time, int end_time)
+ {
+    sqlite3* db;
+    if (sqlite3_open("../Eagles.db", &db) != SQLITE_OK) {
+        cerr << "Cannot open database: " << sqlite3_errmsg(db) << endl;
+        return;
+    }
+
+    const char* query = "INSERT INTO people_move (from_area_id, to_area_id, count, start_time, end_time) VALUES (?, ?, ?, ?, ?)"; 
+
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) != SQLITE_OK) {
+        cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
+        sqlite3_close(db);
+        return;
+    }
+
+    sqlite3_bind_int(stmt, 1, from_area_id);
+    sqlite3_bind_int(stmt, 2, to_area_id);
+    sqlite3_bind_int(stmt, 3, count);
+    sqlite3_bind_int(stmt, 4, start_time);
+    sqlite3_bind_int(stmt, 5, end_time);
+
+    sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+    return;
+
+ }
+
+  void MainDB::insertPeopleStay(int area_id, int stay_time, int start_time, int end_time)
+ {
+    sqlite3* db;
+    if (sqlite3_open("../Eagles.db", &db) != SQLITE_OK) {
+        cerr << "Cannot open database: " << sqlite3_errmsg(db) << endl;
+        return;
+    }
+
+    const char* query = "INSERT INTO people_stay (area_id, stay_time, start_time, end_time) VALUES (?, ?, ?, ?)"; 
+
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) != SQLITE_OK) {
+        cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
+        sqlite3_close(db);
+        return;
+    }
+
+    sqlite3_bind_int(stmt, 1, area_id);
+    sqlite3_bind_int(stmt, 2, stay_time);
+    sqlite3_bind_int(stmt, 3, start_time);
+    sqlite3_bind_int(stmt, 4, end_time);
+
+    sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+    return;
+
+ }
 
 // 해당 영역 삭제
 void MainDB::deleteArea(int camera_id, int area_id) {

@@ -9,23 +9,18 @@ HTTPServer::HTTPServer(string ip, int port)
 
 HTTPServer::~HTTPServer() {}
 
-void HTTPServer::setResponse()
+void HTTPServer::setClientResponse()
 {
-    MainDB mainDB;
-    HTTPClient httpClient;
-
     /* GET */
-
-    server.Get("/device/all", [&mainDB](const httplib::Request& req, httplib::Response& res) {
+    server.Get("/device/all", [this](const httplib::Request& req, httplib::Response& res) {
         mtx.lock();
         // 클라이언트에게 카메라 정보 보내기
-        cout << " test - 1 " << endl;
         string jsonBody = mainDB.fetchCameras();
         res.set_content(jsonBody, "application/json");
         mtx.unlock();
 	});
 
-    server.Get("/peoplecnt/all", [&mainDB](const httplib::Request& req, httplib::Response& res) {
+    server.Get("/peoplecnt/all", [this](const httplib::Request& req, httplib::Response& res) {
         mtx.lock();
         // 클라이언트에게 사람수(전체) response
         if (req.has_param("camera_id")) {
@@ -36,7 +31,7 @@ void HTTPServer::setResponse()
         mtx.unlock();
 	});
 
-    server.Get("/peoplecnt/unit", [&mainDB](const httplib::Request& req, httplib::Response& res) {
+    server.Get("/peoplecnt/unit", [this](const httplib::Request& req, httplib::Response& res) {
         mtx.lock();
         // 클라이언트에게 기간에 따른 사람수(시작/끝) 정보 response
         if (req.has_param("camera_id") && req.has_param("start") && req.has_param("end")) {
@@ -48,7 +43,7 @@ void HTTPServer::setResponse()
         mtx.unlock();
 	});
 
-    server.Get("/peoplestay/all", [&mainDB](const httplib::Request& req, httplib::Response& res) {
+    server.Get("/peoplestay/all", [this](const httplib::Request& req, httplib::Response& res) {
         mtx.lock();
         // 클라이언트에게 사람수(전체) response
         if (req.has_param("camera_id")) {
@@ -59,7 +54,7 @@ void HTTPServer::setResponse()
         mtx.unlock();
 	});
 
-     server.Get("/peoplestay/unit", [&mainDB](const httplib::Request& req, httplib::Response& res) {
+     server.Get("/peoplestay/unit", [this](const httplib::Request& req, httplib::Response& res) {
         mtx.lock();
         // 클라이언트에게 기간에 따른 사람수(시작/끝) 정보 response
         if (req.has_param("camera_id") && req.has_param("start") && req.has_param("end")) {
@@ -71,7 +66,7 @@ void HTTPServer::setResponse()
         mtx.unlock();
 	});
 
-    server.Get("/peoplemove/all", [&mainDB](const httplib::Request& req, httplib::Response& res) {
+    server.Get("/peoplemove/all", [this](const httplib::Request& req, httplib::Response& res) {
         mtx.lock();
         // 클라이언트에게 사람수(전체) response
         if (req.has_param("camera_id")) {
@@ -82,7 +77,7 @@ void HTTPServer::setResponse()
         mtx.unlock();
 	});
 
-    server.Get("/peoplemove/unit", [&mainDB](const httplib::Request& req, httplib::Response& res) {
+    server.Get("/peoplemove/unit", [this](const httplib::Request& req, httplib::Response& res) {
         mtx.lock();
         // 클라이언트에게 기간에 따른 사람수(시작/끝) 정보 response
         if (req.has_param("camera_id") && req.has_param("start") && req.has_param("end")) {
@@ -94,7 +89,7 @@ void HTTPServer::setResponse()
         mtx.unlock();
 	});
 
-    server.Get("/area/all", [&mainDB](const httplib::Request& req, httplib::Response& res) {
+    server.Get("/area/all", [this](const httplib::Request& req, httplib::Response& res) {
         mtx.lock();
         // 클라이언트에게 기간에 따른 사람수(시작/끝) 정보 response
         if ( req.has_param("camera_id") ) {
@@ -123,7 +118,7 @@ void HTTPServer::setResponse()
 
     /* Post */
 
-    server.Post("/area/insert", [&mainDB, &httpClient](const httplib::Request& req, httplib::Response& res) {
+    server.Post("/area/insert", [this](const httplib::Request& req, httplib::Response& res) {
         mtx.lock();
         json jsonData = json::parse(req.body);
         string areaName = jsonData["area_name"];
@@ -164,7 +159,7 @@ void HTTPServer::setResponse()
 
     /* Delete */
 
-    server.Delete("/area/all", [&mainDB, &httpClient](const httplib::Request& req, httplib::Response& res) {
+    server.Delete("/area/all", [this](const httplib::Request& req, httplib::Response& res) {
         mtx.lock();
         string jsonHandler;
         if (req.has_param("camera_id")) {
@@ -185,7 +180,7 @@ void HTTPServer::setResponse()
         mtx.unlock();
 	});
 
-    server.Delete("/area", [&mainDB, &httpClient](const httplib::Request& req, httplib::Response& res) {
+    server.Delete("/area", [this](const httplib::Request& req, httplib::Response& res) {
         mtx.lock();
         string jsonHandler;
         if (req.has_param("camera_id") && req.has_param("area_id")) {
@@ -210,9 +205,64 @@ void HTTPServer::setResponse()
 
 }
 
+void HTTPServer::setCameraResponse()
+{
+    /* Post */
+    server.Post("/peoplecnt", [this](const httplib::Request& req, httplib::Response& res) {
+        mtx.lock();
+        string jsonHandler;
+        json jsonData = json::parse(req.body);
+        if (!jsonData.empty()) {
+            for (auto j:jsonData["data"]) {
+                mainDB.insertPeopleCount(j["area_id"],j["people_count"],j["start_time"],j["end_time"]);
+            }
+            json okJson; okJson["status"] = 200; jsonHandler = okJson.dump();
+        } else {
+            json errJson; errJson["status"] = -1; jsonHandler = errJson.dump();
+        }
+        res.set_content(jsonHandler, "application/json");
+        mtx.unlock();
+	});
+
+    server.Post("/peoplemove", [this](const httplib::Request& req, httplib::Response& res) {
+        mtx.lock();
+        string jsonHandler;
+        json jsonData = json::parse(req.body);
+        if (!jsonData.empty()) {
+            for (auto j:jsonData["data"]) {
+                mainDB.insertPeopleMove(j["from_area_id"],j["to_area_id"],j["count"],j["start_time"],j["end_time"]);
+            }
+            json okJson; okJson["status"] = 200; jsonHandler = okJson.dump();
+        } else {
+            json errJson; errJson["status"] = -1; jsonHandler = errJson.dump();
+        }
+        res.set_content(jsonHandler, "application/json");
+        mtx.unlock();
+	});
+
+    server.Post("/peoplestay", [this](const httplib::Request& req, httplib::Response& res) {
+        mtx.lock();
+        string jsonHandler;
+        json jsonData = json::parse(req.body);
+        if (!jsonData.empty()) {
+            for (auto j:jsonData["data"]) {
+                mainDB.insertPeopleStay(j["area_id"],j["stay_time"],j["start_time"],j["end_time"]);
+            }
+            json okJson; okJson["status"] = 200; jsonHandler = okJson.dump();
+        } else {
+            json errJson; errJson["status"] = -1; jsonHandler = errJson.dump();
+        }
+        res.set_content(jsonHandler, "application/json");
+        mtx.unlock();
+	});
+
+}
+
+
 void HTTPServer::setHTTPServer()
 {
-    setResponse();
+    setClientResponse();
+    setCameraResponse();
     cout << " - start smart_zone_server - " << endl;
     server.listen(this->ip, this->port);
 }
