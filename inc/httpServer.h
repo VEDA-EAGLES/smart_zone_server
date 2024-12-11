@@ -15,9 +15,12 @@ class HTTPServer
 {
 private:
     httplib::Server server;
+    MainDB mainDB;
+    HTTPClient httpClient;
     string ip;
     int port;
-    void setResponse();
+    void setClientResponse();
+    void setCameraResponse();
 
 public:
     HTTPServer(string ip, int port);

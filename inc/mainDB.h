@@ -27,6 +27,9 @@ public:
     json selectAllfromAwhereBequalC(string A, string B, string C);
     json selectAllfromAwhereBequalC(string A, string B, int C);
     void insertAreas(int camera_id, string area_name, int x, int y, int width, int height, string color);
+    void insertPeopleCount(int area_id, int people_count, int start_time, int end_time);
+    void insertPeopleMove(int from_area_id, int to_area_id, int count, int start_time, int end_time);
+    void insertPeopleStay(int area_id, int stay_time, int start_time, int end_time);
     void deleteArea(int camera_id, int area_id);
     void deleteArea(int camera_id);
 };

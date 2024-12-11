@@ -10,13 +10,15 @@ string MainDB::fetchCameras() {
         cerr << "Cannot open database: " << sqlite3_errmsg(db) << endl;
         return "";
     }
+
     const char* query = "SELECT camera_id, camera_name, camera_ip FROM cameras";
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) != SQLITE_OK) {
-        cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
+        cerr << "fetchCameras Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
         sqlite3_close(db);
-    }
         return "";
+    }
+        
     json cameras = json::array(); // JSON 배열 생성
 
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -30,7 +32,6 @@ string MainDB::fetchCameras() {
 
     json result;
     result["cameras"] = cameras;
-
     sqlite3_finalize(stmt);
     string cameras_str = result.dump();
 
@@ -48,11 +49,11 @@ string MainDB::fetchPeopleCnt(int cameraId) {
         return "";
     }
 
-    const char* query = "SELECT * FROM people_count WHERE camera_id = ?";
+    const char* query = "SELECT pc.* FROM cameras c JOIN areas a ON c.camera_id = a.camera_id JOIN people_count pc ON a.area_id = pc.area_id WHERE c.camera_id = ?;";
     sqlite3_stmt* stmt;
 
     if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) != SQLITE_OK) {
-        cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
+        cerr << "fetchPeopleCnt Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
         sqlite3_close(db);
         return "";
     }
@@ -88,10 +89,10 @@ string MainDB::fetchPeopleCnt(int cameraId, int start, int end) {
         return "";
     }
 
-    const char* query = "SELECT * FROM people_count WHERE camera_id = ? AND start_time >= ? AND end_time <= ?;";
+    const char* query = "SELECT pc.* FROM cameras c JOIN areas a ON c.camera_id = a.camera_id JOIN people_count pc ON a.area_id = pc.area_id WHERE c.camera_id = ? AND pc.start_time >= ? AND pc.end_time <= ?;";
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) != SQLITE_OK) {
-        cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
+        cerr << "fetchPeopleCnt Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
         sqlite3_close(db);
         return "";
     }
@@ -128,11 +129,11 @@ string MainDB::fetchPeopleStay(int cameraId) {
         return "";
     }
 
-    const char* query = "SELECT * FROM people_stay WHERE camera_id = ?";
+    const char* query = "SELECT ps.* FROM cameras c JOIN areas a ON c.camera_id = a.camera_id JOIN people_stay ps ON a.area_id = ps.area_id WHERE c.camera_id = ?;";
     sqlite3_stmt* stmt;
 
     if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) != SQLITE_OK) {
-        cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
+        cerr << "fetchPeopleStay Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
         sqlite3_close(db);
         return "";
     }
@@ -168,10 +169,10 @@ string MainDB::fetchPeopleStay(int cameraId, int start, int end) {
         return "";
     }
 
-    const char* query = "SELECT * FROM people_stay WHERE camera_id = ? AND start_time >= ? AND end_time <= ?;";
+    const char* query = "SELECT ps.* FROM cameras c JOIN areas a ON c.camera_id = a.camera_id JOIN people_stay ps ON a.area_id = ps.area_id WHERE c.camera_id = ? AND ps.start_time >= ? AND ps.end_time <= ?;";
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) != SQLITE_OK) {
-        cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
+        cerr << "fetchPeopleStay Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
         sqlite3_close(db);
         return "";
     }
@@ -208,11 +209,11 @@ string MainDB::fetchPeopleMove(int cameraId) {
         return "";
     }
 
-    const char* query = "SELECT * FROM people_move WHERE camera_id = ?";
+    const char* query = "SELECT pm.* FROM cameras c JOIN areas a ON c.camera_id = a.camera_id JOIN people_move pm ON a.area_id = pm.area_id WHERE c.camera_id = ?;";
     sqlite3_stmt* stmt;
 
     if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) != SQLITE_OK) {
-        cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
+        cerr << "fetchPeopleMove Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
         sqlite3_close(db);
         return "";
     }
@@ -249,10 +250,10 @@ string MainDB::fetchPeopleMove(int cameraId, int start, int end) {
         return "";
     }
 
-    const char* query = "SELECT * FROM people_move WHERE camera_id = ? AND start_time >= ? AND end_time <= ?;";
+    const char* query = "SELECT pm.* FROM cameras c JOIN areas a ON c.camera_id = a.camera_id JOIN people_move pm ON a.area_id = pm.area_id WHERE c.camera_id = ? AND pm.start_time >= ? AND pm.end_time <= ?;";
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) != SQLITE_OK) {
-        cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
+        cerr << "fetchPeopleMove Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
         sqlite3_close(db);
         return "";
     }
@@ -292,7 +293,7 @@ json MainDB::selectAllfromAwhereBequalC(string A, string B, string C) {
     string query = "SELECT * FROM " + A + " WHERE " + B + " = '" + C + "'";
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
-        cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
+        cerr << "selectAllfromAwhereBequalC Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
         sqlite3_close(db);
         return "";
     }
@@ -361,7 +362,7 @@ json MainDB::selectAllfromAwhereBequalC(string A, string B, int C) {
     string query = "SELECT * FROM " + A + " WHERE " + B + " = ?";
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
-        cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
+        cerr << "selectAllfromAwhereBequalC Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
         sqlite3_close(db);
         return "";
     }
@@ -420,7 +421,8 @@ json MainDB::selectAllfromAwhereBequalC(string A, string B, int C) {
     return jsonArray;
 }
 
-void MainDB::insertAreas(int camera_id, string area_name, int x, int y, int width, int height, string color) {
+void MainDB::insertAreas(int camera_id, string area_name, int x, int y, int width, int height, string color) 
+{
     sqlite3* db;
     if (sqlite3_open("../Eagles.db", &db) != SQLITE_OK) {
         cerr << "Cannot open database: " << sqlite3_errmsg(db) << endl;
@@ -431,7 +433,7 @@ void MainDB::insertAreas(int camera_id, string area_name, int x, int y, int widt
 
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) != SQLITE_OK) {
-        cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
+        cerr << "insertAreas Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
         sqlite3_close(db);
         return;
     }
@@ -449,6 +451,94 @@ void MainDB::insertAreas(int camera_id, string area_name, int x, int y, int widt
     sqlite3_close(db);
     return;
 }
+
+ void MainDB::insertPeopleCount(int area_id, int people_count, int start_time, int end_time)
+ {
+    sqlite3* db;
+    if (sqlite3_open("../Eagles.db", &db) != SQLITE_OK) {
+        cerr << "Cannot open database: " << sqlite3_errmsg(db) << endl;
+        return;
+    }
+
+    const char* query = "INSERT INTO people_count (area_id, people_count, start_time, end_time) VALUES (?, ?, ?, ?)"; 
+
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) != SQLITE_OK) {
+        cerr << "insertPeopleCount Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
+        sqlite3_close(db);
+        return;
+    }
+
+    sqlite3_bind_int(stmt, 1, area_id);
+    sqlite3_bind_int(stmt, 2, people_count);
+    sqlite3_bind_int(stmt, 3, start_time);
+    sqlite3_bind_int(stmt, 4, end_time);
+
+    sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+    return;
+
+ }
+
+  void MainDB::insertPeopleMove(int from_area_id, int to_area_id, int count, int start_time, int end_time)
+ {
+    sqlite3* db;
+    if (sqlite3_open("../Eagles.db", &db) != SQLITE_OK) {
+        cerr << "Cannot open database: " << sqlite3_errmsg(db) << endl;
+        return;
+    }
+
+    const char* query = "INSERT INTO people_move (from_area_id, to_area_id, count, start_time, end_time) VALUES (?, ?, ?, ?, ?)"; 
+
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) != SQLITE_OK) {
+        cerr << "insertPeopleMove Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
+        sqlite3_close(db);
+        return;
+    }
+
+    sqlite3_bind_int(stmt, 1, from_area_id);
+    sqlite3_bind_int(stmt, 2, to_area_id);
+    sqlite3_bind_int(stmt, 3, count);
+    sqlite3_bind_int(stmt, 4, start_time);
+    sqlite3_bind_int(stmt, 5, end_time);
+
+    sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+    return;
+
+ }
+
+  void MainDB::insertPeopleStay(int area_id, int stay_time, int start_time, int end_time)
+ {
+    sqlite3* db;
+    if (sqlite3_open("../Eagles.db", &db) != SQLITE_OK) {
+        cerr << "Cannot open database: " << sqlite3_errmsg(db) << endl;
+        return;
+    }
+
+    const char* query = "INSERT INTO people_stay (area_id, stay_time, start_time, end_time) VALUES (?, ?, ?, ?)"; 
+
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) != SQLITE_OK) {
+        cerr << "insertPeopleStay Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
+        sqlite3_close(db);
+        return;
+    }
+
+    sqlite3_bind_int(stmt, 1, area_id);
+    sqlite3_bind_int(stmt, 2, stay_time);
+    sqlite3_bind_int(stmt, 3, start_time);
+    sqlite3_bind_int(stmt, 4, end_time);
+
+    sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+    return;
+
+ }
 
 // 해당 영역 삭제
 void MainDB::deleteArea(int camera_id, int area_id) {
@@ -470,7 +560,7 @@ void MainDB::deleteArea(int camera_id, int area_id) {
     const char* query = "DELETE FROM areas WHERE camera_id = ? AND area_id = ?";
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) != SQLITE_OK) {
-        cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
+        cerr << "deleteArea Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
         sqlite3_close(db);
         return;
     }
@@ -504,7 +594,7 @@ void MainDB::deleteArea(int camera_id) {
     const char* query = "DELETE FROM areas WHERE camera_id = ?";
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) != SQLITE_OK) {
-        cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
+        cerr << "deleteArea Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
         sqlite3_close(db);
         return;
     }

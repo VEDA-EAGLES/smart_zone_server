@@ -8,7 +8,6 @@ void HTTPClient::insertArea(string camIp, json jsonData)
     httplib::Client cli(camIp,HTTP_C_PORT);
 
     json data;  data["area"] = json::array({jsonData}); 
-    cout << camIp << endl;
     string jsonBody = data.dump(); // JSON 문자열로 변환
 
     auto res = cli.Post("/area/insert", jsonBody, "application/json"); 
