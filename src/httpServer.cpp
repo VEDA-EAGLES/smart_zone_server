@@ -15,6 +15,7 @@ void HTTPServer::setClientResponse()
     server.Get("/device/all", [this](const httplib::Request& req, httplib::Response& res) {
         mtx.lock();
         // 클라이언트에게 카메라 정보 보내기
+        cout << "Send all camera info" << endl;
         string jsonBody = mainDB.fetchCameras();
         res.set_content(jsonBody, "application/json");
         mtx.unlock();
@@ -24,6 +25,7 @@ void HTTPServer::setClientResponse()
         mtx.lock();
         // 클라이언트에게 사람수(전체) response
         if (req.has_param("camera_id")) {
+            cout << "Send peoplecount about camera: " << req.get_param_value("camera_id") << endl;
             int cameraId = stoi(req.get_param_value("camera_id"));
             string jsonBody = mainDB.fetchPeopleCnt(cameraId);
             res.set_content(jsonBody, "application/json");
@@ -35,6 +37,7 @@ void HTTPServer::setClientResponse()
         mtx.lock();
         // 클라이언트에게 기간에 따른 사람수(시작/끝) 정보 response
         if (req.has_param("camera_id") && req.has_param("start") && req.has_param("end")) {
+            cout << "Send peoplecount(unit) about camera: " << req.get_param_value("camera_id") << endl;
             int cameraId = stoi(req.get_param_value("camera_id"));
             string start = req.get_param_value("start"), end = req.get_param_value("end");
             string jsonBody = mainDB.fetchPeopleCnt(cameraId,stoi(start),stoi(end));
@@ -47,6 +50,7 @@ void HTTPServer::setClientResponse()
         mtx.lock();
         // 클라이언트에게 사람수(전체) response
         if (req.has_param("camera_id")) {
+            cout << "Send peoplestay about camera: " << req.get_param_value("camera_id") << endl;
             int cameraId = stoi(req.get_param_value("camera_id"));
             string jsonBody = mainDB.fetchPeopleStay(cameraId);
             res.set_content(jsonBody, "application/json");
@@ -58,6 +62,7 @@ void HTTPServer::setClientResponse()
         mtx.lock();
         // 클라이언트에게 기간에 따른 사람수(시작/끝) 정보 response
         if (req.has_param("camera_id") && req.has_param("start") && req.has_param("end")) {
+            cout << "Send peoplestay(unit) about camera: " << req.get_param_value("camera_id") << endl;
             int cameraId = stoi(req.get_param_value("camera_id"));
             string start = req.get_param_value("start"), end = req.get_param_value("end");
             string jsonBody = mainDB.fetchPeopleStay(cameraId,stoi(start),stoi(end));
@@ -70,6 +75,7 @@ void HTTPServer::setClientResponse()
         mtx.lock();
         // 클라이언트에게 사람수(전체) response
         if (req.has_param("camera_id")) {
+            cout << "Send peoplemove about camera: " << req.get_param_value("camera_id") << endl;
             int cameraId = stoi(req.get_param_value("camera_id"));
             string jsonBody = mainDB.fetchPeopleStay(cameraId);
             res.set_content(jsonBody, "application/json");
@@ -81,6 +87,7 @@ void HTTPServer::setClientResponse()
         mtx.lock();
         // 클라이언트에게 기간에 따른 사람수(시작/끝) 정보 response
         if (req.has_param("camera_id") && req.has_param("start") && req.has_param("end")) {
+            cout << "Send peoplemove(unit) about camera: " << req.get_param_value("camera_id") << endl;
             int cameraId = stoi(req.get_param_value("camera_id"));
             string start = req.get_param_value("start"), end = req.get_param_value("end");
             string jsonBody = mainDB.fetchPeopleStay(cameraId,stoi(start),stoi(end));
@@ -93,6 +100,7 @@ void HTTPServer::setClientResponse()
         mtx.lock();
         // 클라이언트에게 기간에 따른 사람수(시작/끝) 정보 response
         if ( req.has_param("camera_id") ) {
+            cout << "Send area about camera: " << req.get_param_value("camera_id") << endl;
             int cameraId = stoi(req.get_param_value("camera_id"));
             json selected = mainDB.selectAllfromAwhereBequalC("areas","camera_id",cameraId);
             string jsonHandler;
@@ -120,9 +128,11 @@ void HTTPServer::setClientResponse()
 
     server.Post("/area/insert", [this](const httplib::Request& req, httplib::Response& res) {
         mtx.lock();
+        
         json jsonData = json::parse(req.body);
         string areaName = jsonData["area_name"];
         int cameraId = jsonData["camera_id"];
+        cout << "area: " << areaName << " is inserted from cameraId: "<< cameraId<<endl; 
         // 받은 HTTP의 body로 온 제이슨의 area_name이 DB에 있는지 확인
         json selected = mainDB.selectAllfromAwhereBequalC("areas","area_name",areaName);
         string jsonHandler;
@@ -163,6 +173,7 @@ void HTTPServer::setClientResponse()
         mtx.lock();
         string jsonHandler;
         if (req.has_param("camera_id")) {
+            cout << "delete area all about camera: " << req.get_param_value("camera_id") << endl;
             int cameraId = stoi(req.get_param_value("camera_id"));
             // cameras 테이블에서 camera_id로 camera_ip 정보 가져오기
             json selected = mainDB.selectAllfromAwhereBequalC("cameras","camera_id", cameraId);
@@ -186,6 +197,7 @@ void HTTPServer::setClientResponse()
         if (req.has_param("camera_id") && req.has_param("area_id")) {
             int cameraId = stoi(req.get_param_value("camera_id"));
             int areaId = stoi(req.get_param_value("area_id"));
+            cout << "delete area about camera: " << cameraId << ", areaId: " << areaId <<endl;
             // cameras 테이블에서 camera_id로 camera_ip 정보 가져오기
             json selected = mainDB.selectAllfromAwhereBequalC("cameras","camera_id", cameraId);
             string camIp = selected[0]["camera_ip"];
@@ -215,6 +227,7 @@ void HTTPServer::setCameraResponse()
         if (!jsonData.empty()) {
             for (auto j:jsonData["data"]) {
                 mainDB.insertPeopleCount(j["area_id"],j["people_count"],j["start_time"],j["end_time"]);
+                cout << "PeopleCount is inserted by areaId: " << j["area_id"] << ", count: " << j["people_count"]<<endl;
             }
             json okJson; okJson["status"] = 200; jsonHandler = okJson.dump();
         } else {
@@ -231,6 +244,7 @@ void HTTPServer::setCameraResponse()
         if (!jsonData.empty()) {
             for (auto j:jsonData["data"]) {
                 mainDB.insertPeopleMove(j["from_area_id"],j["to_area_id"],j["count"],j["start_time"],j["end_time"]);
+                cout << "PeopleMove is inserted from areaId: " << j["from_area_id"] << " to areaId: " << j["to_area_id"]<<", count: " << j["count"] <<endl;
             }
             json okJson; okJson["status"] = 200; jsonHandler = okJson.dump();
         } else {
@@ -247,6 +261,7 @@ void HTTPServer::setCameraResponse()
         if (!jsonData.empty()) {
             for (auto j:jsonData["data"]) {
                 mainDB.insertPeopleStay(j["area_id"],j["stay_time"],j["start_time"],j["end_time"]);
+                cout << "PeopleStay is inserted by areaId: " << j["area_id"] << ", stayTime: " << j["stay_time"]<<endl;
             }
             json okJson; okJson["status"] = 200; jsonHandler = okJson.dump();
         } else {
