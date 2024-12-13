@@ -24,3 +24,8 @@ sudo apt-get install --no-install-recommends -y \
     gstreamer1.0-alsa \
     # SQLite3 헤더 파일 사용을 위한 패키지 설치
     libsqlite3-dev
+
+## 프로그램 실행
+git clone https://github.com/VEDA-EAGLES/smart_zone_server
+cd smart_zone_server
+./smart_zone_server.sh
