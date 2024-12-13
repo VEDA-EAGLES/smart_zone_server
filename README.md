@@ -9,5 +9,7 @@ sudo apt-get install libsqlite3-dev
 
 # 실행
 git clone https://github.com/VEDA-EAGLES/smart_zone_server
-cd smart_zone_server
-./smart_zone_server.sh
+smart_zone_server/inc/ 경로로 이동합니다.
+define.h 의 MY_IP를 "<본인 IP>"로 변경합니다.
+
+smart_zone_server/ 경로의 smart_zone_server.sh 셀스크립트를 실행합니다.
